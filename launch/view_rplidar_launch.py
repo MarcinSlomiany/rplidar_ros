@@ -16,6 +16,7 @@ def generate_launch_description():
     frame_id = LaunchConfiguration('frame_id', default='laser')
     inverted = LaunchConfiguration('inverted', default='false')
     angle_compensate = LaunchConfiguration('angle_compensate', default='true')
+    scan_mode = LaunchConfiguration('scan_mode', default='Boost')  # Standard | Express | Boost
 
     rviz_config_dir = os.path.join(
             get_package_share_directory('rplidar_ros2'),
@@ -34,7 +35,7 @@ def generate_launch_description():
             'serial_baudrate',
             default_value=serial_baudrate,
             description='Specifying usb port baudrate to connected lidar'),
-        
+
         DeclareLaunchArgument(
             'frame_id',
             default_value=frame_id,
@@ -50,16 +51,21 @@ def generate_launch_description():
             default_value=angle_compensate,
             description='Specifying whether or not to enable angle_compensate of scan data'),
 
+        DeclareLaunchArgument(
+            'scan_mode',
+            default_value=scan_mode,
+            description='Select scan mode'),
 
         Node(
             package='rplidar_ros2',
             executable='rplidar_scan_publisher',
             name='rplidar_scan_publisher',
-            parameters=[{'serial_port': serial_port, 
-                         'serial_baudrate': serial_baudrate, 
+            parameters=[{'serial_port': serial_port,
+                         'serial_baudrate': serial_baudrate,
                          'frame_id': frame_id,
-                         'inverted': inverted, 
-                         'angle_compensate': angle_compensate}],
+                         'inverted': inverted,
+                         'angle_compensate': angle_compensate,
+                         'scan_mode': scan_mode}],
             output='screen'),
 
         Node(
@@ -68,5 +74,11 @@ def generate_launch_description():
             name='rviz2',
             arguments=['-d', rviz_config_dir],
             output='screen'),
+
+        Node(
+            package = "tf2_ros",
+            executable = "static_transform_publisher",
+            arguments = ["0.0", "0", "1.15", "0", "0", "0", "base_link", "laser"]
+        )
     ])
 
